@@ -138,6 +138,10 @@ def build_app(settings: Settings | None = None) -> FastAPI:
     async def health() -> dict:
         return {"status": "ok"}
 
+    from app.api.imports import router as imports_router
+
+    fastapi_app.include_router(imports_router)
+
     return fastapi_app
 
 
