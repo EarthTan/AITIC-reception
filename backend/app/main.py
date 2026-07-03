@@ -11,7 +11,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-import app.models  # noqa: F401 - ensures all 6 ORM classes register with Base before create_all
+from app import models  # noqa: F401 - ensures all 6 ORM classes register with Base before create_all
 from app.adapters.ai.mock import MockAIAdapter
 from app.adapters.led.mock import MockLEDAdapter
 from app.adapters.nfc.mock import MockNFCAdapter
