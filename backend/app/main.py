@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 
 logger = logging.getLogger(__name__)
 
+from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -15,6 +16,7 @@ from app.adapters.ai.mock import MockAIAdapter
 from app.adapters.led.mock import MockLEDAdapter
 from app.adapters.nfc.mock import MockNFCAdapter
 from app.adapters.tts.mock import MockTTSAdapter
+from app.core.backup import schedule_daily_backup
 from app.core.config import Settings, get_settings
 from app.core.db import Base, make_engine, make_session_factory
 from app.core.event_bus import EventBus
@@ -50,6 +52,11 @@ def build_app(settings: Settings | None = None) -> FastAPI:
     verify_service = VerifyService(session_factory, event_bus)
     log_service = LogService(session_factory)
     excel_watcher = ExcelWatcher(settings.excel_watch_dir, event_bus)
+
+    scheduler = BackgroundScheduler()
+    schedule_daily_backup(
+        scheduler, settings.database_url.removeprefix("sqlite:///"), "backup"
+    )
 
     background_tasks: list[asyncio.Task] = []
 
@@ -94,8 +101,10 @@ def build_app(settings: Settings | None = None) -> FastAPI:
             ]
         )
         excel_watcher.start()
+        scheduler.start()
         yield
         excel_watcher.stop()
+        scheduler.shutdown(wait=False)
         for task in background_tasks:
             task.cancel()
         await asyncio.gather(*background_tasks, return_exceptions=True)
