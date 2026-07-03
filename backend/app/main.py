@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from contextlib import asynccontextmanager
+
+logger = logging.getLogger(__name__)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -95,6 +98,7 @@ def build_app(settings: Settings | None = None) -> FastAPI:
         excel_watcher.stop()
         for task in background_tasks:
             task.cancel()
+        await asyncio.gather(*background_tasks, return_exceptions=True)
 
     fastapi_app = FastAPI(title="AITIC 展厅智能前台", lifespan=lifespan)
     fastapi_app.add_middleware(
@@ -132,7 +136,10 @@ async def _consume(event_bus: EventBus, topic: str, handler) -> None:
     queue = event_bus.subscribe(topic)
     while True:
         payload = await queue.get()
-        await handler(payload)
+        try:
+            await handler(payload)
+        except Exception:
+            logger.exception("Handler for topic %r failed", topic)
 
 
 async def _pump_card_reads(nfc_adapter: MockNFCAdapter, event_bus: EventBus) -> None:
