@@ -8,11 +8,18 @@ from app.adapters.base import AdapterHealth, CardReadEvent, NFCAdapter, WriteRes
 
 
 class MockNFCAdapter(NFCAdapter):
-    def __init__(self) -> None:
+    def __init__(self, fail: bool = False) -> None:
         self._read_queue: asyncio.Queue[CardReadEvent] = asyncio.Queue()
         self._written_payloads: dict[str, dict] = {}
+        self._fail = fail
 
     async def write_card(self, card_uid: str, payload: dict) -> WriteResult:
+        if self._fail:
+            return WriteResult(
+                success=False,
+                card_uid=card_uid,
+                error_message="mock NFC adapter configured to fail",
+            )
         self._written_payloads[card_uid] = payload
         return WriteResult(success=True, card_uid=card_uid)
 

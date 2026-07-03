@@ -57,3 +57,27 @@ async def test_handle_welcome_generated_writes_card_and_updates_status():
 
     log_payload = await asyncio.wait_for(work_log_queue.get(), timeout=1)
     assert log_payload["module"] == "card_write"
+
+
+async def test_handle_welcome_generated_records_failure_when_nfc_write_fails():
+    session_factory, visit_id = _seeded_session_factory()
+    event_bus = EventBus()
+    completed_queue = event_bus.subscribe("card.write.completed")
+    work_log_queue = event_bus.subscribe("work_log.append")
+    nfc_adapter = MockNFCAdapter(fail=True)
+    service = CardService(session_factory, event_bus, nfc_adapter)
+
+    await service.handle_welcome_generated({"visit_id": visit_id})
+
+    with session_factory() as session:
+        visit = session.get(Visit, visit_id)
+        assert visit.status == VisitStatus.WELCOME_READY  # unchanged, not CARD_WRITTEN
+        write_log = session.query(NFCWriteLog).filter_by(visit_id=visit_id).one()
+        assert write_log.write_status.value == "failed"
+        assert write_log.error_message
+
+    completed_payload = await asyncio.wait_for(completed_queue.get(), timeout=1)
+    assert completed_payload["status"] == "failed"
+
+    log_payload = await asyncio.wait_for(work_log_queue.get(), timeout=1)
+    assert log_payload["status"] == "failure"
