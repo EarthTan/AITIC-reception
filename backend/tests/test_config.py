@@ -9,6 +9,8 @@ def test_settings_defaults():
     settings = Settings()
     assert settings.database_url == "sqlite:///./data/app.db"
     assert settings.excel_watch_dir == "./data/incoming"
+    assert settings.ai_api_key == ""
+    assert settings.ai_provider == "qwen"
     assert settings.cors_origins == ["http://localhost:5173"]
 
 
@@ -16,6 +18,9 @@ def test_settings_env_var_override(monkeypatch):
     monkeypatch.setenv("DATABASE_URL", "sqlite:///./custom.db")
     settings = Settings()
     assert settings.database_url == "sqlite:///./custom.db"
+    # Other fields remain at their defaults
+    assert settings.excel_watch_dir == "./data/incoming"
+    assert settings.ai_provider == "qwen"
 
 
 def test_get_settings_returns_cached_instance():
@@ -24,5 +29,9 @@ def test_get_settings_returns_cached_instance():
 
 
 def test_configure_logging_sets_root_level():
-    configure_logging(level=logging.DEBUG)
-    assert logging.getLogger().level == logging.DEBUG
+    original_level = logging.getLogger().level
+    try:
+        configure_logging(level=logging.DEBUG)
+        assert logging.getLogger().level == logging.DEBUG
+    finally:
+        logging.getLogger().setLevel(original_level)
