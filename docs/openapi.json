@@ -1,0 +1,1698 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AITIC 展厅智能前台",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Health Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/import/preview": {
+      "post": {
+        "tags": [
+          "import"
+        ],
+        "summary": "Preview Import",
+        "operationId": "preview_import_api_import_preview_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_preview_import_api_import_preview_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportPreviewResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/import/commit": {
+      "post": {
+        "tags": [
+          "import"
+        ],
+        "summary": "Commit Import",
+        "operationId": "commit_import_api_import_commit_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportCommitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportCommitResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/visits": {
+      "get": {
+        "tags": [
+          "visits"
+        ],
+        "summary": "List Visits",
+        "operationId": "list_visits_api_visits_get",
+        "parameters": [
+          {
+            "name": "visit_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Visit Date"
+            }
+          },
+          {
+            "name": "identity_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/IdentityType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Identity Type"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Page Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VisitOut"
+                  },
+                  "title": "Response List Visits Api Visits Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/visits/summary": {
+      "get": {
+        "tags": [
+          "visits"
+        ],
+        "summary": "Visit Summary",
+        "operationId": "visit_summary_api_visits_summary_get",
+        "parameters": [
+          {
+            "name": "month",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}$",
+              "title": "Month"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VisitSummaryRow"
+                  },
+                  "title": "Response Visit Summary Api Visits Summary Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/visits/summary/export": {
+      "get": {
+        "tags": [
+          "visits"
+        ],
+        "summary": "Export Visit Summary",
+        "operationId": "export_visit_summary_api_visits_summary_export_get",
+        "parameters": [
+          {
+            "name": "month",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}$",
+              "title": "Month"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/visits/today": {
+      "get": {
+        "tags": [
+          "visits"
+        ],
+        "summary": "Today Visits",
+        "operationId": "today_visits_api_visits_today_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/VisitOut"
+                  },
+                  "type": "array",
+                  "title": "Response Today Visits Api Visits Today Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/visits/{visit_id}": {
+      "get": {
+        "tags": [
+          "visits"
+        ],
+        "summary": "Get Visit",
+        "operationId": "get_visit_api_visits__visit_id__get",
+        "parameters": [
+          {
+            "name": "visit_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Visit Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "visits"
+        ],
+        "summary": "Update Visit",
+        "description": "Update editable person fields. Does NOT re-trigger AI welcome generation.",
+        "operationId": "update_visit_api_visits__visit_id__patch",
+        "parameters": [
+          {
+            "name": "visit_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Visit Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VisitUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisitOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/templates": {
+      "get": {
+        "tags": [
+          "templates"
+        ],
+        "summary": "List Templates",
+        "operationId": "list_templates_api_templates_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TemplateOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Templates Api Templates Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/templates/{identity_type}": {
+      "put": {
+        "tags": [
+          "templates"
+        ],
+        "summary": "Update Template",
+        "operationId": "update_template_api_templates__identity_type__put",
+        "parameters": [
+          {
+            "name": "identity_type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identity Type"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TemplateUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cards/write": {
+      "post": {
+        "tags": [
+          "cards"
+        ],
+        "summary": "Write Cards",
+        "operationId": "write_cards_api_cards_write_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CardWriteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CardWriteResult"
+                  },
+                  "type": "array",
+                  "title": "Response Write Cards Api Cards Write Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cards/write-log": {
+      "get": {
+        "tags": [
+          "cards"
+        ],
+        "summary": "List Write Log",
+        "operationId": "list_write_log_api_cards_write_log_get",
+        "parameters": [
+          {
+            "name": "visit_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Visit Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CardWriteLogOut"
+                  },
+                  "title": "Response List Write Log Api Cards Write Log Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/verify-log": {
+      "get": {
+        "tags": [
+          "logs"
+        ],
+        "summary": "List Verify Log",
+        "operationId": "list_verify_log_api_verify_log_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/VerifyLogOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Verify Log Api Verify Log Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/work-logs": {
+      "get": {
+        "tags": [
+          "logs"
+        ],
+        "summary": "List Work Logs",
+        "operationId": "list_work_logs_api_work_logs_get",
+        "parameters": [
+          {
+            "name": "module",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/LogModule"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Module"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/LogStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkLogOut"
+                  },
+                  "title": "Response List Work Logs Api Work Logs Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/adapters/status": {
+      "get": {
+        "tags": [
+          "adapters"
+        ],
+        "summary": "Adapter Status",
+        "operationId": "adapter_status_api_adapters_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdapterStatusOut"
+                  },
+                  "type": "array",
+                  "title": "Response Adapter Status Api Adapters Status Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/settings": {
+      "get": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Get Settings Endpoint",
+        "operationId": "get_settings_endpoint_api_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsOut"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "settings"
+        ],
+        "summary": "Update Settings Endpoint",
+        "operationId": "update_settings_endpoint_api_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettingsUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SettingsOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/debug/simulate-card-read": {
+      "post": {
+        "tags": [
+          "debug"
+        ],
+        "summary": "Simulate Card Read",
+        "operationId": "simulate_card_read_api_debug_simulate_card_read_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulateCardReadRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Simulate Card Read Api Debug Simulate Card Read Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AdapterHealthStatus": {
+        "type": "string",
+        "enum": [
+          "online",
+          "offline",
+          "error"
+        ],
+        "title": "AdapterHealthStatus"
+      },
+      "AdapterStatusOut": {
+        "properties": {
+          "adapter_name": {
+            "type": "string",
+            "title": "Adapter Name"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AdapterHealthStatus"
+          },
+          "last_heartbeat": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Heartbeat"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "adapter_name",
+          "status",
+          "last_heartbeat",
+          "detail"
+        ],
+        "title": "AdapterStatusOut"
+      },
+      "Body_preview_import_api_import_preview_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_preview_import_api_import_preview_post"
+      },
+      "CardWriteLogOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "visit_id": {
+            "type": "integer",
+            "title": "Visit Id"
+          },
+          "card_uid": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Card Uid"
+          },
+          "write_status": {
+            "$ref": "#/components/schemas/WriteStatus"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "written_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Written At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "visit_id",
+          "card_uid",
+          "write_status",
+          "error_message",
+          "written_at"
+        ],
+        "title": "CardWriteLogOut"
+      },
+      "CardWriteRequest": {
+        "properties": {
+          "visit_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Visit Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "visit_ids"
+        ],
+        "title": "CardWriteRequest"
+      },
+      "CardWriteResult": {
+        "properties": {
+          "visit_id": {
+            "type": "integer",
+            "title": "Visit Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "visit_id",
+          "status"
+        ],
+        "title": "CardWriteResult"
+      },
+      "EntrySource": {
+        "type": "string",
+        "enum": [
+          "auto",
+          "manual"
+        ],
+        "title": "EntrySource"
+      },
+      "FailReason": {
+        "type": "string",
+        "enum": [
+          "name_mismatch",
+          "date_mismatch",
+          "card_not_found"
+        ],
+        "title": "FailReason"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "IdentityType": {
+        "type": "string",
+        "enum": [
+          "企业领导",
+          "企业员工",
+          "学校老师",
+          "大学生",
+          "中小学生",
+          "政府官员"
+        ],
+        "title": "IdentityType"
+      },
+      "ImportCommitRequest": {
+        "properties": {
+          "preview_id": {
+            "type": "string",
+            "title": "Preview Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "preview_id"
+        ],
+        "title": "ImportCommitRequest"
+      },
+      "ImportCommitResponse": {
+        "properties": {
+          "import_batch_id": {
+            "type": "string",
+            "title": "Import Batch Id"
+          },
+          "visit_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Visit Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "import_batch_id",
+          "visit_ids"
+        ],
+        "title": "ImportCommitResponse"
+      },
+      "ImportPreviewResponse": {
+        "properties": {
+          "preview_id": {
+            "type": "string",
+            "title": "Preview Id"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ImportPreviewRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          },
+          "valid_count": {
+            "type": "integer",
+            "title": "Valid Count"
+          },
+          "invalid_count": {
+            "type": "integer",
+            "title": "Invalid Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "preview_id",
+          "rows",
+          "valid_count",
+          "invalid_count"
+        ],
+        "title": "ImportPreviewResponse"
+      },
+      "ImportPreviewRow": {
+        "properties": {
+          "row_number": {
+            "type": "integer",
+            "title": "Row Number"
+          },
+          "data": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Data"
+          },
+          "errors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Errors"
+          },
+          "is_valid": {
+            "type": "boolean",
+            "title": "Is Valid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "row_number",
+          "data",
+          "errors",
+          "is_valid"
+        ],
+        "title": "ImportPreviewRow"
+      },
+      "LogModule": {
+        "type": "string",
+        "enum": [
+          "registration",
+          "ai_writeup",
+          "card_write",
+          "verify",
+          "led",
+          "tts",
+          "system"
+        ],
+        "title": "LogModule"
+      },
+      "LogStatus": {
+        "type": "string",
+        "enum": [
+          "success",
+          "failure",
+          "warning"
+        ],
+        "title": "LogStatus"
+      },
+      "SettingsOut": {
+        "properties": {
+          "excel_watch_dir": {
+            "type": "string",
+            "title": "Excel Watch Dir"
+          },
+          "ai_provider": {
+            "type": "string",
+            "title": "Ai Provider"
+          },
+          "has_ai_api_key": {
+            "type": "boolean",
+            "title": "Has Ai Api Key"
+          },
+          "cors_origins": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cors Origins"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "excel_watch_dir",
+          "ai_provider",
+          "has_ai_api_key",
+          "cors_origins"
+        ],
+        "title": "SettingsOut"
+      },
+      "SettingsUpdate": {
+        "properties": {
+          "excel_watch_dir": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excel Watch Dir"
+          },
+          "ai_provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Provider"
+          },
+          "ai_api_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Api Key"
+          }
+        },
+        "type": "object",
+        "title": "SettingsUpdate"
+      },
+      "SimulateCardReadRequest": {
+        "properties": {
+          "card_uid": {
+            "type": "string",
+            "title": "Card Uid"
+          },
+          "raw_payload": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Raw Payload"
+          }
+        },
+        "type": "object",
+        "required": [
+          "card_uid",
+          "raw_payload"
+        ],
+        "title": "SimulateCardReadRequest"
+      },
+      "TemplateIdentityType": {
+        "type": "string",
+        "enum": [
+          "默认",
+          "企业领导",
+          "企业员工",
+          "学校老师",
+          "大学生",
+          "中小学生",
+          "政府官员"
+        ],
+        "title": "TemplateIdentityType"
+      },
+      "TemplateOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "identity_type": {
+            "$ref": "#/components/schemas/TemplateIdentityType"
+          },
+          "template_text": {
+            "type": "string",
+            "title": "Template Text"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "identity_type",
+          "template_text",
+          "updated_at"
+        ],
+        "title": "TemplateOut"
+      },
+      "TemplateUpdate": {
+        "properties": {
+          "template_text": {
+            "type": "string",
+            "title": "Template Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "template_text"
+        ],
+        "title": "TemplateUpdate"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "VerifyLogOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "card_uid": {
+            "type": "string",
+            "title": "Card Uid"
+          },
+          "visit_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visit Id"
+          },
+          "verify_result": {
+            "$ref": "#/components/schemas/VerifyResult"
+          },
+          "fail_reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FailReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "verified_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Verified At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "card_uid",
+          "visit_id",
+          "verify_result",
+          "fail_reason",
+          "verified_at"
+        ],
+        "title": "VerifyLogOut"
+      },
+      "VerifyResult": {
+        "type": "string",
+        "enum": [
+          "pass",
+          "fail"
+        ],
+        "title": "VerifyResult"
+      },
+      "VisitOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "visit_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Visit Date"
+          },
+          "session_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Session Time"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "nationality": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nationality"
+          },
+          "id_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id Number"
+          },
+          "gender": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender"
+          },
+          "organization": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organization"
+          },
+          "identity_type": {
+            "$ref": "#/components/schemas/IdentityType"
+          },
+          "welcome_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Welcome Text"
+          },
+          "welcome_source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WelcomeSource"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "entry_source": {
+            "$ref": "#/components/schemas/EntrySource"
+          },
+          "import_batch_id": {
+            "type": "string",
+            "title": "Import Batch Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/VisitStatus"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "visit_date",
+          "session_time",
+          "name",
+          "phone",
+          "nationality",
+          "id_number",
+          "gender",
+          "organization",
+          "identity_type",
+          "welcome_text",
+          "welcome_source",
+          "entry_source",
+          "import_batch_id",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "VisitOut"
+      },
+      "VisitStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "welcome_ready",
+          "card_written",
+          "verified",
+          "rejected"
+        ],
+        "title": "VisitStatus"
+      },
+      "VisitSummaryRow": {
+        "properties": {
+          "visit_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Visit Date"
+          },
+          "session_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Session Time"
+          },
+          "visit_count": {
+            "type": "integer",
+            "title": "Visit Count"
+          },
+          "visits": {
+            "items": {
+              "$ref": "#/components/schemas/VisitOut"
+            },
+            "type": "array",
+            "title": "Visits"
+          }
+        },
+        "type": "object",
+        "required": [
+          "visit_date",
+          "session_time",
+          "visit_count",
+          "visits"
+        ],
+        "title": "VisitSummaryRow"
+      },
+      "VisitUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "nationality": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nationality"
+          },
+          "gender": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender"
+          },
+          "organization": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organization"
+          },
+          "identity_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IdentityType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "VisitUpdate"
+      },
+      "WelcomeSource": {
+        "type": "string",
+        "enum": [
+          "ai",
+          "fallback_template"
+        ],
+        "title": "WelcomeSource"
+      },
+      "WorkLogOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "module": {
+            "$ref": "#/components/schemas/LogModule"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "status": {
+            "$ref": "#/components/schemas/LogStatus"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "module",
+          "action",
+          "status",
+          "detail",
+          "created_at"
+        ],
+        "title": "WorkLogOut"
+      },
+      "WriteStatus": {
+        "type": "string",
+        "enum": [
+          "success",
+          "failed",
+          "pending"
+        ],
+        "title": "WriteStatus"
+      }
+    }
+  }
+}

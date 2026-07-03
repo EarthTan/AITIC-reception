@@ -64,11 +64,20 @@ def test_get_work_logs_filters_by_module(tmp_path):
         assert body[0]["module"] == "verify"
 
 
-def test_get_adapter_status_returns_empty_list_before_any_heartbeat(tmp_path):
+def test_get_adapter_status_endpoint_returns_a_list(tmp_path):
+    # Task 14 wires `_poll_adapter_heartbeats` into the lifespan, so by the
+    # time the client connects the poller has likely published at least one
+    # heartbeat. The endpoint contract is: status 200 + JSON list (possibly
+    # non-empty). Asserting the list shape, not its contents, keeps the test
+    # stable against the new poller.
     with _client(tmp_path) as client:
         response = client.get("/api/adapters/status")
         assert response.status_code == 200
-        assert response.json() == []
+        body = response.json()
+        assert isinstance(body, list)
+        for row in body:
+            assert "adapter_name" in row
+            assert "status" in row
 
 
 def test_get_work_logs_does_not_leak_unmasked_id_numbers(tmp_path):

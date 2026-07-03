@@ -1,7 +1,8 @@
 # backend/tests/test_main.py
+from fastapi.testclient import TestClient
+
 from app.core.config import Settings
 from app.main import build_app
-from fastapi.testclient import TestClient
 
 
 def test_health_endpoint_and_state_are_wired(tmp_path):
@@ -23,4 +24,5 @@ def test_health_endpoint_and_state_are_wired(tmp_path):
             "card",
             "verify",
             "log",
+            "adapter_status",
         }
