@@ -32,7 +32,7 @@ class ExcelWatcher:
 
     def start(self) -> None:
         Path(self._watch_dir).mkdir(parents=True, exist_ok=True)
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         handler = _NewExcelHandler(loop, self._event_bus)
         self._observer = Observer()
         self._observer.schedule(handler, self._watch_dir, recursive=False)
