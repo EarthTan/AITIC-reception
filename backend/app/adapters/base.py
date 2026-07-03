@@ -72,3 +72,6 @@ class TTSAdapter(ABC):
 class AIAdapter(ABC):
     @abstractmethod
     async def generate_welcome(self, visit: VisitInfo) -> str: ...
+
+    @abstractmethod
+    async def health_check(self) -> AdapterHealth: ...
