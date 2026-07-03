@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from pathlib import Path
 from contextlib import asynccontextmanager
 
 logger = logging.getLogger(__name__)
@@ -158,6 +159,12 @@ def build_app(settings: Settings | None = None) -> FastAPI:
 
     fastapi_app.include_router(logs_router)
     fastapi_app.include_router(adapters_router)
+    from app.api.settings import router as settings_router
+    
+    fastapi_app.include_router(settings_router)
+    fastapi_app.state.settings = settings
+    fastapi_app.state.settings_override_path = Path("data/settings_override.json")
+    
 
     return fastapi_app
 
