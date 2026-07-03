@@ -1,5 +1,5 @@
 # backend/tests/test_models.py
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 
 from app.core.db import Base, make_engine, make_session_factory
 from app.core.seed import seed_default_templates
@@ -60,7 +60,7 @@ def test_all_six_tables_accept_one_row_each():
             AdapterStatusRow(
                 adapter_name="nfc",
                 status=AdapterHealthStatus.ONLINE,
-                last_heartbeat=datetime.utcnow(),
+                last_heartbeat=datetime.now(timezone.utc),
             )
         )
         session.commit()

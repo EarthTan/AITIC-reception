@@ -1,5 +1,5 @@
 import enum
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
@@ -23,4 +23,6 @@ class NFCWriteLog(Base):
     card_uid: Mapped[str | None] = mapped_column(String(64), nullable=True)
     write_status: Mapped[WriteStatus] = mapped_column(Enum(WriteStatus), nullable=False)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
-    written_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    written_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+    )

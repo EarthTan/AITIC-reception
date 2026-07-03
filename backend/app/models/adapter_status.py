@@ -1,5 +1,5 @@
 import enum
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, Enum, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
@@ -20,5 +20,7 @@ class AdapterStatusRow(Base):
     status: Mapped[AdapterHealthStatus] = mapped_column(
         Enum(AdapterHealthStatus), nullable=False
     )
-    last_heartbeat: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    last_heartbeat: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
     detail: Mapped[str | None] = mapped_column(Text, nullable=True)
