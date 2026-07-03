@@ -153,6 +153,12 @@ def build_app(settings: Settings | None = None) -> FastAPI:
 
     fastapi_app.include_router(cards_router)
 
+    from app.api.adapters import router as adapters_router
+    from app.api.logs import router as logs_router
+
+    fastapi_app.include_router(logs_router)
+    fastapi_app.include_router(adapters_router)
+
     return fastapi_app
 
 
