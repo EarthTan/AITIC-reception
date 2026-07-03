@@ -162,6 +162,10 @@ def build_app(settings: Settings | None = None) -> FastAPI:
     from app.api.settings import router as settings_router
     
     fastapi_app.include_router(settings_router)
+
+    from app.api.debug import router as debug_router
+
+    fastapi_app.include_router(debug_router)
     fastapi_app.state.settings = settings
     fastapi_app.state.settings_override_path = Path("data/settings_override.json")
     
