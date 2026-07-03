@@ -36,11 +36,11 @@ class AIWriteupWorker:
                 source = WelcomeSource.AI
                 log_status = "success"
                 log_detail = f"visit_id={visit_id} AI生成成功"
-            except Exception:
+            except Exception as exc:
                 welcome_text = self._fallback_text(session, visit)
                 source = WelcomeSource.FALLBACK_TEMPLATE
                 log_status = "warning"
-                log_detail = f"visit_id={visit_id} AI生成失败，已降级为模板"
+                log_detail = f"visit_id={visit_id} AI生成失败，已降级为模板: {exc}"
 
             visit.welcome_text = welcome_text
             visit.welcome_source = source
