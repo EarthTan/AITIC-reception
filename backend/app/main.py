@@ -149,6 +149,10 @@ def build_app(settings: Settings | None = None) -> FastAPI:
 
     fastapi_app.include_router(templates_router)
 
+    from app.api.cards import router as cards_router
+
+    fastapi_app.include_router(cards_router)
+
     return fastapi_app
 
 
