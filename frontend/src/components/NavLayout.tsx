@@ -1,33 +1,41 @@
-import { Link, Outlet } from "react-router-dom";
-import { AdapterOfflineBanner } from "./AdapterOfflineBanner";
+// Top-level layout for the 8 admin pages: offline banner (if any) above the
+// Sidebar + page content area. Full-screen hardware pages (/display, /mock-led)
+// bypass this layout (see router.tsx).
 
-const NAV_ITEMS = [
-  { to: "/", label: "仪表盘" },
-  { to: "/registration", label: "访客登记" },
-  { to: "/summary", label: "汇总总表" },
-  { to: "/live-board", label: "现场实时看板" },
-  { to: "/cards", label: "写卡管理" },
-  { to: "/templates", label: "欢迎词模板" },
-  { to: "/work-logs", label: "工作日志" },
-  { to: "/settings", label: "系统设置" },
-];
+import { Outlet } from "react-router-dom";
+import { Sidebar } from "./Sidebar";
+import { OfflineBanner } from "./OfflineBanner";
 
 export function NavLayout() {
   return (
-    <div>
-      <AdapterOfflineBanner />
-      <nav>
-        <ul>
-          {NAV_ITEMS.map((item) => (
-            <li key={item.to}>
-              <Link to={item.to}>{item.label}</Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
-      <main>
-        <Outlet />
-      </main>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        background: "#0a0e1a",
+        fontFamily:
+          '-apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif',
+        color: "rgba(245,246,248,0.75)",
+      }}
+    >
+      <OfflineBanner />
+      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+        <Sidebar />
+        <main
+          style={{
+            flex: 1,
+            padding: "36px 40px 60px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 24,
+            minWidth: 0,
+            overflowX: "auto",
+          }}
+        >
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }
