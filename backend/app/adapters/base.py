@@ -66,6 +66,10 @@ class TTSAdapter(ABC):
     async def enqueue_speech(self, text: str) -> None: ...
 
     @abstractmethod
+    async def play_beep(self, duration_seconds: float = 1.5) -> None:
+        """长音蜂鸣——复用同一音响输出通道（§三.3）。"""
+
+    @abstractmethod
     async def health_check(self) -> AdapterHealth: ...
 
 
