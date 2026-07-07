@@ -35,7 +35,7 @@ cd backend
 # Run the FastAPI dev server on :8000 (with auto-reload via uvicorn)
 uv run main.py
 
-# Run the full test suite — 73 tests total: 72 pass + 1 documented-acceptable fail
+# Run the full test suite — 89 tests total: 88 pass + 1 documented-acceptable fail (PII guard)
 uv run pytest                                        # quiet
 uv run pytest -v                                     # verbose listing
 uv run pytest tests/test_registration_service.py     # one file
@@ -120,47 +120,113 @@ The `ExcelWatcher` (`app/watchers/excel_watcher.py`) uses `watchdog` to publish 
 ```
 app/api/
 ├── deps.py         # get_db / get_event_bus / get_services / get_adapters
-├── imports.py      # POST /api/import/{preview,commit}  (two-stage)
+├── imports.py      # POST /api/import/{preview,commit}  (two-stage; preview mask_id_number)
 ├── visits.py       # GET/PATCH /api/visits, /summary, /summary/export, /today, /{id}
 ├── templates.py    # GET/PUT /api/templates[/{identity_type}]      ← Chinese URL segments
-├── cards.py        # POST /api/cards/write, GET /api/cards/write-log
-├── logs.py         # GET /api/verify-log, /api/work-logs?module=&status=
+├── cards.py        # POST /api/cards/write (manual §三.2), GET /api/cards/write-log
+├── logs.py         # GET /api/verify-log, /api/work-logs?module=&status=, /api/work-logs/export
 ├── adapters.py     # GET /api/adapters/status
 ├── settings.py     # GET/PUT /api/settings   (writes data/settings_override.json)
 ├── debug.py        # POST /api/debug/simulate-card-read   (Mock-only, 400 in real mode)
-└── ws.py           # WS /ws/realtime  (forwards card.verify.* + adapter.heartbeat)
+└── ws.py           # WS /ws/realtime  (forwards card.verify.* + adapter.heartbeat + led.content)
 ```
 
-**Frontend (`frontend/src/`)** — Vite + React 19 + TS 6 SPA, 8 pages, a zustand WS store, an axios API layer:
+**Backend services** — 7 services now (added `OnsiteWelcomeService`):
+
+```
+app/services/
+├── registration_service.py   # imports Excel → publishes visit.imported + welcome.requested
+├── ai_writeup_service.py     # publishes welcome.generated; sets visit.status = WELCOME_READY
+├── card_service.py           # write_card_for_visit (manual trigger); publishes card.write.completed
+├── verify_service.py         # publishes card.verify.{passed,failed}; sets visit.status = VERIFIED|REJECTED
+├── onsite_welcome_service.py # SUBSCRIBES to card.verify.*; drives led + tts + beep + led.content  [NEW]
+├── log_service.py            # persists work_log entries
+└── adapter_status_service.py # upserts adapter_status rows from heartbeats
+```
+
+**Backend adapters** — 4 abstract + 4 mock + 2 real:
+
+```
+app/adapters/
+├── base.py          # ABC: NFCAdapter / LEDAdapter / TTSAdapter / AIAdapter
+│                    # + AdapterHealth / WriteResult / CardReadEvent / VisitInfo
+│                    # + LEDContent is re-exported from schemas/led.py
+├── nfc/mock.py      # queue + simulate_card_read + fail= kwarg
+├── led/mock.py      # displayed[] + rejected[] (now stores "无权限入场")
+├── tts/mock.py      # spoken[] + beeps[]
+├── ai/mock.py       # returns "{name}，欢迎您..."
+├── tts/real.py      # RealTTSAdapter(pyttsx3): enqueue_speech + play_beep cross-platform  [NEW]
+└── ai/real.py       # QwenAIAdapter(DashScope, cloud)
+```
+
+**Frontend (`frontend/src/`)** — Vite + React 19 + TS 6 SPA, 10 pages (added /display + /mock-led), a zustand WS store, an axios API layer:
 
 ```
 src/
-├── api/          # types.ts (Pydantic mirror), client.ts (axios baseURL=/api),
-│                 #   queryKeys.ts + 8 endpoint modules: visits/imports/templates/
-│                 #   cards/logs/adapters/settings/debug
-├── stores/realtimeStore.ts  # zustand, single WebSocket singleton, 20-event ring buffer
-├── components/NavLayout.tsx # top nav + <Outlet/>
-├── pages/        # DashboardPage / RegistrationPage / SummaryPage /
-│                 #   LiveBoardPage / CardManagementPage /
-│                 #   TemplatesPage / WorkLogPage / SettingsPage
+├── api/          # types.ts (Pydantic mirror, flattened WS envelope), client.ts, queryKeys.ts
+│                 #   + 8 endpoint modules: visits/imports/templates/cards/logs/adapters/settings/debug
+├── stores/realtimeStore.ts  # zustand, single WS; ledContent + adapterStatuses + reconnectAttempt state
+├── components/
+│   ├── NavLayout.tsx              # <AdapterOfflineBanner/> on top, then <Outlet/>
+│   └── AdapterOfflineBanner.tsx  # red banner when any adapter non-online                [NEW]
+├── pages/
+│   ├── DashboardPage           # today's count + adapter status
+│   ├── RegistrationPage        # Excel preview (9 cols), commit
+│   ├── SummaryPage             # monthly summary, grouped by 场次, export xlsx
+│   ├── LiveBoardPage           # WS-driven: passes show name+welcome, fails show red block
+│   ├── CardManagementPage      # lists visits where status=welcome_ready, manual batch write
+│   ├── DisplayPage             # /display: dark bg, today's list + latest event           [NEW]
+│   ├── MockLEDPane             # /mock-led: fullscreen black bg, 96px welcome text         [NEW]
+│   ├── TemplatesPage           # edit 7 templates
+│   ├── WorkLogPage             # filter + export xlsx
+│   └── SettingsPage            # watch dir, AI key (masked), provider (read-only)
 ├── App.tsx       # QueryClientProvider + RouterProvider + useEffect(connect)
-└── router.tsx    # createBrowserRouter, 8 routes under NavLayout
+└── router.tsx    # createBrowserRouter, 8 routes under NavLayout + 2 top-level (/display, /mock-led)
 ```
+
+Vite dev server proxies `/api/*` and `/ws/*` to `http://localhost:8000` — no CORS in dev, no code change to ship.
 
 Vite dev server proxies `/api/*` and `/ws/*` to `http://localhost:8000` — no CORS in dev, no code change to ship.
 
 ## REST + WebSocket contract
 
-Full source of truth: `docs/openapi.json` (snapshot of `app.openapi()` post-Day 2 Task 14). Key shapes:
+Full source of truth: `docs/openapi.json`（定期从 `app.openapi()` 重新生成）。当前 18 个 endpoint：
+
+| Method | Path | 用途 |
+|---|---|---|
+| GET | `/health` | 健康检查 |
+| GET | `/api/visits` | 访客列表（含 filter） |
+| GET | `/api/visits/{visit_id}` | 单访客（mask_id_number 自动脱敏） |
+| PATCH | `/api/visits/{visit_id}` | 修改访客 |
+| GET | `/api/visits/today` | 今日来访 |
+| GET | `/api/visits/summary?month=YYYY-MM` | 月度汇总（按场次分组） |
+| GET | `/api/visits/summary/export?month=YYYY-MM` | 导出月度汇总 xlsx |
+| POST | `/api/import/preview` | Excel 预览（`身份证号` 自动脱敏，§六.2） |
+| POST | `/api/import/commit` | 提交入库 |
+| GET | `/api/templates` | 7 个欢迎词模板 |
+| PUT | `/api/templates/{identity_type}` | 更新模板（identity_type 是 URL-encoded 中文枚举） |
+| POST | `/api/cards/write` | 手动写卡（§三.2） |
+| GET | `/api/cards/write-log` | 写卡历史 |
+| POST | `/api/debug/simulate-card-read` | Mock 环境模拟刷卡；真机模式下 400 |
+| GET | `/api/verify-log` | 现场校验历史 |
+| GET | `/api/work-logs?module=&status=` | 工作日志筛选查询 |
+| GET | `/api/work-logs/export?module=&status=&format=xlsx` | 导出工作日志 xlsx（§三.4） |
+| GET | `/api/adapters/status` | 4 个 adapter 心跳快照 |
+| GET, PUT | `/api/settings` | 设置（`has_ai_api_key: bool` 永不出明文 key） |
+| WS | `/ws/realtime` | 见下 |
+
+Key shapes:
 
 - **`VisitOut.id_number`** is **always masked** server-side by `mask_id_number` in `app/schemas/visit.py` (first 3 + 7 asterisks + last 4; passthrough if `<7` chars). Frontend treats it as display text.
 - **`SettingsOut.has_ai_api_key: bool`** — the raw `ai_api_key` is **never** in the response (PII per `docs/TARGET.md` §六.2).
 - **`PUT /api/templates/{identity_type}`** — the path segment is the raw Chinese enum value (`企业领导`, `默认`, etc.), URL-encoded by the frontend.
-- **`ws/realtime` message shape** (per `docs/AITIC展厅_智能前台_完整实现计划_V1.md` §4.5):
+- **`ws/realtime` message shape** — envelope is **扁平的**（服务端 `_forward_topic` 用 `**payload` 展开）:
   ```json
-  {"type": "card.verify.passed", "timestamp": "<ISO-8601>", "payload": {"visit_id": 1, "card_uid": "MOCK-1"}}
+  {"type": "card.verify.passed", "timestamp": "<ISO-8601>", "visit_id": 1, "card_uid": "MOCK-1"}
   ```
-  Three topics only: `card.verify.passed`, `card.verify.failed`, `adapter.heartbeat`.
+  4 个 topics: `card.verify.passed`, `card.verify.failed`, `adapter.heartbeat`, `led.content`。每个变体字段在顶层，前端用 TS discriminated union。
+
+**Frontend WS recovery**: 指数退避重连 `1s → 2s → 4s → ... → 30s`，在 `frontend/src/stores/realtimeStore.ts`。
 
 ## Pipeline Event Flow
 
@@ -168,14 +234,28 @@ Full source of truth: `docs/openapi.json` (snapshot of `app.openapi()` post-Day 
 Excel file detected  → excel.detected          → RegistrationService.import_file
                      → visit.imported          (in-event for AI+Log)
                      → welcome.requested (×N)  → AIWriteupWorker → welcome.generated
-                                                                  → CardService → card.write.completed
+                                                                  → visit.status = WELCOME_READY
+                                                                  (停在这里，等值班人员手动写卡)
+[手动触发] UI "批量写卡" 按钮 → POST /api/cards/write {visit_ids}
+                                → CardService.write_card_for_visit
+                                → nfc_adapter.write_card → visit.status = CARD_WRITTEN
+                                → card.write.completed + work_log.append
+
 NFC card read (real or simulated) → card.verify.requested
-                                  → VerifyService → card.verify.{passed,failed}
-                                                                    → WS push to /ws/realtime
+                                  → VerifyService → visit.status = VERIFIED|REJECTED
+                                                    → card.verify.{passed,failed}
+                                                    → OnsiteWelcomeService:
+                                                       · led.display / show_rejected
+                                                       · tts.enqueue_speech / play_beep
+                                                       · bus.publish("led.content")
+                                                       · 2× work_log.append
+                                                    → WS push to /ws/realtime
 
 Every step also publishes work_log.append → LogService persists.
 Every 30s: _poll_adapter_heartbeats → adapter.heartbeat → AdapterStatusService + WS push.
 ```
+
+**重要变更 (Unreleased)**: 写卡从自动触发改为手动触发（§三.2 spec 要求）。`welcome.generated` 不再驱动 CardService；CardManagementPage 现在能正确列出待写卡访客。
 
 ## Data Models (`backend/app/models/`)
 
@@ -192,7 +272,7 @@ Six SQLAlchemy ORM models, all inheriting from `app.core.db.Base`:
 
 ## Wiring — `backend/app/main.py`
 
-`build_app(settings: Settings | None = None)` is the composition root. It (1) merges any `data/settings_override.json` over the Pydantic settings, (2) builds engine + session_factory + seeds `WelcomeTemplate`, (3) constructs `EventBus` + 4 adapters (4 mock or 3 mock + `QwenAIAdapter` if a key is configured) + 6 services + `ExcelWatcher` + APScheduler, (4) wires 8 background tasks in the FastAPI lifespan (5 service-event consumers + `adapter.heartbeat` consumer + card-read pump + heartbeat poller). The lifespan also starts/stops the watcher and scheduler cleanly.
+`build_app(settings: Settings | None = None)` is the composition root. It (1) merges any `data/settings_override.json` over the Pydantic settings, (2) builds engine + session_factory + seeds `WelcomeTemplate`, (3) constructs `EventBus` + 4 adapters (Mock×4 or RealTTS+Mock×3+`QwenAIAdapter` if key configured) + 7 services (added `OnsiteWelcomeService`) + `ExcelWatcher` + APScheduler, (4) wires 9 background tasks in the FastAPI lifespan (4 service-event consumers + `adapter.heartbeat` consumer + `card.verify.passed/failed` consumers + card-read pump + heartbeat poller). The lifespan also starts/stops the watcher and scheduler cleanly.
 
 Exposes `app.state.{event_bus, session_factory, settings, settings_override_path, adapters, services}`. Routes read these via `app/api/deps.py`.
 
@@ -214,7 +294,7 @@ AITIC-reception/
 │   │   └── main.py         # build_app composition root + uvicorn shim
 │   ├── data/               # SQLite DB + backups + settings_override.json + pending_imports/  (gitignored)
 │   ├── fixtures/           # sample_visitors.xlsx + generator script  (committed)
-│   ├── tests/              # 27 test files, 73 tests total
+│   ├── tests/              # 30 test files, 89 tests total (88 pass + 1 documented-acceptable PII red)
 │   ├── pyproject.toml
 │   └── main.py             # uvicorn entrypoint
 ├── frontend/
@@ -225,9 +305,11 @@ AITIC-reception/
 ├── docs/
 │   ├── TARGET.md                                  # product spec (source of truth)
 │   ├── AITIC展厅_智能前台_完整实现计划_V1.md       # master 5-day plan
-│   ├── openapi.json                               # Day 2 snapshot, regenerated by the command in §Commands
+│   ├── openapi.json                               # auto-regenerated snapshot of app.openapi()
+│   ├── HARDWARE_TESTING.md                        # NFC/LED/TTS/AI 真机接入指南
 │   └── superpowers/
-│       ├── plans/                                 # one .md per day (executable plans)
+│       ├── specs/                                 # design specs (one per major change)
+│       ├── plans/                                 # implementation plans (one per major change)
 │       ├── completed/                             # day1 only (was the Day 1 completion report)
 │       └── completion/                            # day-end reports with commit SHAs + verification results
 ├── CLAUDE.md                                      # this file
