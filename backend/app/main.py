@@ -39,6 +39,7 @@ from app.services.adapter_status_service import AdapterStatusService
 from app.services.ai_writeup_service import AIWriteupWorker
 from app.services.card_service import CardService
 from app.services.log_service import LogService
+from app.services.onsite_welcome_service import OnsiteWelcomeService
 from app.services.registration_service import RegistrationService
 from app.services.verify_service import VerifyService
 from app.watchers.excel_watcher import ExcelWatcher
@@ -72,6 +73,9 @@ def build_app(settings: Settings | None = None) -> FastAPI:
     ai_writeup_worker = AIWriteupWorker(session_factory, event_bus, ai_adapter)
     card_service = CardService(session_factory, event_bus, nfc_adapter)
     verify_service = VerifyService(session_factory, event_bus)
+    onsite_welcome_service = OnsiteWelcomeService(
+        led_adapter, tts_adapter, event_bus, session_factory
+    )
     log_service = LogService(session_factory)
     adapter_status_service = AdapterStatusService(session_factory)
     excel_watcher = ExcelWatcher(settings.excel_watch_dir, event_bus)
@@ -113,6 +117,20 @@ def build_app(settings: Settings | None = None) -> FastAPI:
                         event_bus,
                         "card.verify.requested",
                         verify_service.handle_card_verify_requested,
+                    )
+                ),
+                asyncio.create_task(
+                    _consume(
+                        event_bus,
+                        "card.verify.passed",
+                        onsite_welcome_service.handle_card_verify_passed,
+                    )
+                ),
+                asyncio.create_task(
+                    _consume(
+                        event_bus,
+                        "card.verify.failed",
+                        onsite_welcome_service.handle_card_verify_failed,
                     )
                 ),
                 asyncio.create_task(
@@ -242,6 +260,7 @@ def _build_tts_adapter():
     """RealTTSAdapter 需要音频设备，构造失败时降级 Mock。"""
     try:
         from app.adapters.tts.real import RealTTSAdapter
+
         return RealTTSAdapter()
     except Exception as exc:  # noqa: BLE001
         logger.warning("RealTTSAdapter 初始化失败（%s），降级 MockTTSAdapter", exc)
