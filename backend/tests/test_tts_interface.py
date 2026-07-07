@@ -10,16 +10,20 @@ def test_tts_adapter_has_play_beep_abstract_method():
 
 
 def test_concrete_tts_must_implement_play_beep():
-    """不实现 play_beep 的子类无法实例化。"""
+    """不实现 play_beep 的子类无法实例化（仅因缺少 play_beep）。"""
 
-    class IncompleteTTS(TTSAdapter):
+    class MissingPlayBeepTTS(TTSAdapter):
         async def enqueue_speech(self, text: str) -> None:
             pass
 
-        # 故意不实现 play_beep
+        async def health_check(self) -> str:
+            return "online"
 
-    with pytest.raises(TypeError):
-        IncompleteTTS()
+        # 故意不实现 play_beep —— 只缺这一个
+
+    with pytest.raises(TypeError) as exc_info:
+        MissingPlayBeepTTS()
+    assert "play_beep" in str(exc_info.value)
 
 
 @pytest.mark.asyncio
