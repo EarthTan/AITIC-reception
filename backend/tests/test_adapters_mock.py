@@ -1,10 +1,12 @@
 # backend/tests/test_adapters_mock.py
 import pytest
+
 from app.adapters.ai.mock import MockAIAdapter
-from app.adapters.base import LEDContent, VisitInfo
+from app.adapters.base import VisitInfo
 from app.adapters.led.mock import MockLEDAdapter
 from app.adapters.nfc.mock import MockNFCAdapter
 from app.adapters.tts.mock import MockTTSAdapter
+from app.schemas.led import LEDContent
 
 
 async def test_mock_nfc_write_then_read_back_round_trip():
@@ -28,11 +30,17 @@ async def test_mock_nfc_health_check_reports_online():
 
 async def test_mock_led_records_display_and_rejected_calls():
     adapter = MockLEDAdapter()
-    await adapter.display(["screen-1"], LEDContent(name="张三", welcome_text="欢迎您"))
-    await adapter.show_rejected(["screen-1"])
-    assert len(adapter.displayed) == 1
-    assert adapter.displayed[0][0] == ["screen-1"]
-    assert adapter.rejected == [["screen-1"]]
+    content = LEDContent(name="张三", welcome_text="张三 先生，欢迎您")
+    await adapter.display(["screen-1"], content)
+    await adapter.show_rejected(["screen-1"], reason="name_mismatch")
+
+    assert adapter.displayed == [content]
+
+    assert len(adapter.rejected) == 1
+    rejected = adapter.rejected[0]
+    assert rejected.is_rejection is True
+    assert rejected.welcome_text == "无权限入场"
+    assert rejected.reason == "name_mismatch"
 
 
 async def test_mock_tts_records_spoken_text():

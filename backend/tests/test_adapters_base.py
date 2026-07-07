@@ -2,17 +2,18 @@
 from datetime import datetime, timezone
 
 import pytest
+
 from app.adapters.base import (
     AdapterHealth,
     AIAdapter,
     CardReadEvent,
     LEDAdapter,
-    LEDContent,
     NFCAdapter,
     TTSAdapter,
     VisitInfo,
     WriteResult,
 )
+from app.schemas.led import LEDContent
 
 
 def test_adapter_health_model_holds_expected_fields():

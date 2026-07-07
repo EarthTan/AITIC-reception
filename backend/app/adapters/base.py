@@ -8,6 +8,8 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from app.schemas.led import LEDContent
+
 
 class AdapterHealth(BaseModel):
     status: Literal["online", "offline", "error"]
@@ -34,11 +36,6 @@ class VisitInfo(BaseModel):
     organization: str | None = None
 
 
-class LEDContent(BaseModel):
-    name: str
-    welcome_text: str
-
-
 class NFCAdapter(ABC):
     @abstractmethod
     async def write_card(self, card_uid: str, payload: dict) -> WriteResult: ...
@@ -55,7 +52,7 @@ class LEDAdapter(ABC):
     async def display(self, screen_ids: list[str], content: LEDContent) -> None: ...
 
     @abstractmethod
-    async def show_rejected(self, screen_ids: list[str]) -> None: ...
+    async def show_rejected(self, screen_ids: list[str], reason: str = "") -> None: ...
 
     @abstractmethod
     async def health_check(self) -> AdapterHealth: ...
