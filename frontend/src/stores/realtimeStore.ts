@@ -1,11 +1,6 @@
 // frontend/src/stores/realtimeStore.ts
 import { create } from "zustand";
-
-export interface RealtimeEvent {
-  type: string;
-  timestamp: string;
-  payload: Record<string, unknown>;
-}
+import type { LEDContent, RealtimeEvent } from "../api/types";
 
 interface AdapterLiveStatus {
   status: string;
@@ -17,24 +12,31 @@ interface RealtimeState {
   connected: boolean;
   events: RealtimeEvent[];
   adapterStatuses: Record<string, AdapterLiveStatus>;
+  ledContent: LEDContent | null;
+  reconnectAttempt: number;
   connect: () => void;
 }
 
 let socket: WebSocket | null = null;
 
-export const useRealtimeStore = create<RealtimeState>((set) => ({
+export const useRealtimeStore = create<RealtimeState>((set, get) => ({
   connected: false,
   events: [],
   adapterStatuses: {},
+  ledContent: null,
+  reconnectAttempt: 0,
   connect: () => {
     if (socket) return;
     const protocol = window.location.protocol === "https:" ? "wss" : "ws";
     socket = new WebSocket(`${protocol}://${window.location.host}/ws/realtime`);
 
-    socket.onopen = () => set({ connected: true });
+    socket.onopen = () => set({ connected: true, reconnectAttempt: 0 });
     socket.onclose = () => {
-      set({ connected: false });
-      socket = null;
+      set({ connected: false, socket: null });
+      const attempt = get().reconnectAttempt;
+      const delay = Math.min(1000 * Math.pow(2, attempt), 30_000);
+      set({ reconnectAttempt: attempt + 1 });
+      setTimeout(connect, delay);
     };
     socket.onmessage = (event) => {
       const message: RealtimeEvent = JSON.parse(event.data);
@@ -51,6 +53,9 @@ export const useRealtimeStore = create<RealtimeState>((set) => ({
               },
             },
           };
+        }
+        if (message.type === "led.content") {
+          return { ledContent: message.payload as LEDContent };
         }
         return { events: [message, ...state.events].slice(0, 20) };
       });

@@ -1,22 +1,13 @@
 // frontend/src/api/types.ts
 export type IdentityType =
-  | "企业领导"
-  | "企业员工"
-  | "学校老师"
-  | "大学生"
-  | "中小学生"
-  | "政府官员";
+  "企业领导" | "企业员工" | "学校老师" | "大学生" | "中小学生" | "政府官员";
 
 export type TemplateIdentityType = IdentityType | "默认";
 
 export type WelcomeSource = "ai" | "fallback_template";
 export type EntrySource = "auto" | "manual";
 export type VisitStatus =
-  | "pending"
-  | "welcome_ready"
-  | "card_written"
-  | "verified"
-  | "rejected";
+  "pending" | "welcome_ready" | "card_written" | "verified" | "rejected";
 
 export interface VisitOut {
   id: number;
@@ -149,4 +140,26 @@ export interface SettingsUpdate {
   excel_watch_dir?: string;
   ai_provider?: string;
   ai_api_key?: string;
+}
+
+export type RealtimeEventType =
+  | "card.verify.passed"
+  | "card.verify.failed"
+  | "adapter.heartbeat"
+  | "led.content";
+
+export interface LEDContent {
+  name: string;
+  welcome_text: string;
+  is_rejection: boolean;
+  reason: string;
+}
+
+export interface RealtimeEvent {
+  type: RealtimeEventType;
+  timestamp: string;
+  payload:
+    | { visit_id: number; card_uid: string }
+    | { adapter_name: string; status: string }
+    | LEDContent;
 }
