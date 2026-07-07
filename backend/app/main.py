@@ -61,7 +61,7 @@ def build_app(settings: Settings | None = None) -> FastAPI:
     event_bus = EventBus()
     nfc_adapter = MockNFCAdapter()
     led_adapter = MockLEDAdapter()
-    tts_adapter = MockTTSAdapter()
+    tts_adapter = _build_tts_adapter()
     ai_adapter: AIAdapter = (
         QwenAIAdapter(api_key=settings.ai_api_key)
         if settings.ai_api_key
@@ -236,6 +236,16 @@ async def _poll_adapter_heartbeats(
                 },
             )
         await asyncio.sleep(interval_seconds)
+
+
+def _build_tts_adapter():
+    """RealTTSAdapter 需要音频设备，构造失败时降级 Mock。"""
+    try:
+        from app.adapters.tts.real import RealTTSAdapter
+        return RealTTSAdapter()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("RealTTSAdapter 初始化失败（%s），降级 MockTTSAdapter", exc)
+        return MockTTSAdapter()
 
 
 _APP: FastAPI | None = None
