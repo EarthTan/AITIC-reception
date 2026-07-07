@@ -9,6 +9,7 @@ import { TemplatesPage } from "./pages/TemplatesPage";
 import { WorkLogPage } from "./pages/WorkLogPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { DisplayPage } from "./pages/DisplayPage";
+import { MockLEDPane } from "./pages/MockLEDPane";
 
 export const router = createBrowserRouter([
   {
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
       { path: "work-logs", element: <WorkLogPage /> },
       { path: "settings", element: <SettingsPage /> },
       { path: "/display", element: <DisplayPage /> },
+      { path: "/mock-led", element: <MockLEDPane /> },
     ],
   },
 ]);
