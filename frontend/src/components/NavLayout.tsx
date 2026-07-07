@@ -1,4 +1,5 @@
 import { Link, Outlet } from "react-router-dom";
+import { AdapterOfflineBanner } from "./AdapterOfflineBanner";
 
 const NAV_ITEMS = [
   { to: "/", label: "仪表盘" },
@@ -14,6 +15,7 @@ const NAV_ITEMS = [
 export function NavLayout() {
   return (
     <div>
+      <AdapterOfflineBanner />
       <nav>
         <ul>
           {NAV_ITEMS.map((item) => (
