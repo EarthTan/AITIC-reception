@@ -8,6 +8,7 @@ import { CardManagementPage } from "./pages/CardManagementPage";
 import { TemplatesPage } from "./pages/TemplatesPage";
 import { WorkLogPage } from "./pages/WorkLogPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { DisplayPage } from "./pages/DisplayPage";
 
 export const router = createBrowserRouter([
   {
@@ -22,6 +23,7 @@ export const router = createBrowserRouter([
       { path: "templates", element: <TemplatesPage /> },
       { path: "work-logs", element: <WorkLogPage /> },
       { path: "settings", element: <SettingsPage /> },
+      { path: "/display", element: <DisplayPage /> },
     ],
   },
 ]);
