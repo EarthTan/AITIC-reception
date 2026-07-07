@@ -45,20 +45,36 @@ export function RegistrationPage() {
               <tr>
                 <th>行号</th>
                 <th>姓名</th>
+                <th>来访日期</th>
+                <th>计划场次时间</th>
+                <th>手机号</th>
+                <th>国籍</th>
+                <th>身份证号</th>
+                <th>性别</th>
+                <th>单位</th>
                 <th>身份</th>
                 <th>错误</th>
               </tr>
             </thead>
             <tbody>
-              {preview.rows.map((row) => (
+              {preview.rows.map((row, idx) => (
                 <tr
-                  key={row.row_number}
+                  key={idx}
                   style={{ background: row.is_valid ? undefined : "#ffdddd" }}
                 >
                   <td>{row.row_number}</td>
                   <td>{String(row.data["姓名"] ?? "")}</td>
+                  <td>{String(row.data["来访日期"] ?? "")}</td>
+                  <td>{String(row.data["计划场次时间"] ?? "")}</td>
+                  <td>{String(row.data["手机号"] ?? "")}</td>
+                  <td>{String(row.data["国籍"] ?? "")}</td>
+                  <td>{String(row.data["身份证号"] ?? "")}</td>
+                  <td>{String(row.data["性别"] ?? "")}</td>
+                  <td>{String(row.data["单位"] ?? "")}</td>
                   <td>{String(row.data["身份"] ?? "")}</td>
-                  <td>{row.errors.join("; ")}</td>
+                  <td style={{ color: "red", fontSize: 12 }}>
+                    {row.errors.join("; ")}
+                  </td>
                 </tr>
               ))}
             </tbody>
