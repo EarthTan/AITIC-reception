@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from app.adapters.base import LEDAdapter
+from datetime import datetime, timezone
+
+from app.adapters.base import AdapterHealth, LEDAdapter
 from app.schemas.led import LEDContent
 
 
@@ -25,5 +27,8 @@ class MockLEDAdapter(LEDAdapter):
             )
         )
 
-    async def health_check(self) -> str:
-        return "online"
+    async def health_check(self) -> AdapterHealth:
+        return AdapterHealth(
+            status="online",
+            last_heartbeat=datetime.now(timezone.utc),
+        )
