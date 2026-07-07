@@ -155,11 +155,31 @@ export interface LEDContent {
   reason: string;
 }
 
-export interface RealtimeEvent {
-  type: RealtimeEventType;
-  timestamp: string;
-  payload:
-    | { visit_id: number; card_uid: string }
-    | { adapter_name: string; status: string }
-    | LEDContent;
-}
+export type RealtimeEvent =
+  | {
+      type: "card.verify.passed";
+      timestamp: string;
+      visit_id: number;
+      card_uid: string;
+    }
+  | {
+      type: "card.verify.failed";
+      timestamp: string;
+      visit_id: number;
+      card_uid: string;
+    }
+  | {
+      type: "adapter.heartbeat";
+      timestamp: string;
+      adapter_name: string;
+      status: string;
+      detail: string | null;
+    }
+  | {
+      type: "led.content";
+      timestamp: string;
+      name: string;
+      welcome_text: string;
+      is_rejection: boolean;
+      reason: string;
+    };

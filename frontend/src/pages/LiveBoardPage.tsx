@@ -88,7 +88,7 @@ export function LiveBoardPage() {
         <ul>
           {events.map((event, index) => (
             <li key={index}>
-              {event.timestamp} - {event.type} - {JSON.stringify(event.payload)}
+              {event.timestamp} - {event.type} - {JSON.stringify(event)}
             </li>
           ))}
         </ul>

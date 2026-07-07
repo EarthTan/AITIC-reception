@@ -32,33 +32,40 @@ export const useRealtimeStore = create<RealtimeState>((set, get) => ({
 
     socket.onopen = () => set({ connected: true, reconnectAttempt: 0 });
     socket.onclose = () => {
-      set({ connected: false, socket: null });
+      socket = null;
+      set({ connected: false });
       const attempt = get().reconnectAttempt;
       const delay = Math.min(1000 * Math.pow(2, attempt), 30_000);
       set({ reconnectAttempt: attempt + 1 });
-      setTimeout(connect, delay);
+      setTimeout(() => get().connect(), delay);
     };
     socket.onmessage = (event) => {
       const message: RealtimeEvent = JSON.parse(event.data);
-      set((state) => {
-        if (message.type === "adapter.heartbeat") {
-          const name = String(message.payload.adapter_name);
-          return {
-            adapterStatuses: {
-              ...state.adapterStatuses,
-              [name]: {
-                status: String(message.payload.status),
-                lastHeartbeat: message.timestamp,
-                detail: (message.payload.detail as string | null) ?? null,
-              },
+      if (message.type === "adapter.heartbeat") {
+        const hb = message;
+        set((state) => ({
+          adapterStatuses: {
+            ...state.adapterStatuses,
+            [hb.adapter_name]: {
+              status: String(hb.status),
+              lastHeartbeat: hb.timestamp,
+              detail: hb.detail ?? null,
             },
-          };
-        }
-        if (message.type === "led.content") {
-          return { ledContent: message.payload as LEDContent };
-        }
-        return { events: [message, ...state.events].slice(0, 20) };
-      });
+          },
+        }));
+        return;
+      }
+      if (message.type === "led.content") {
+        const lc: LEDContent = {
+          name: message.name,
+          welcome_text: message.welcome_text,
+          is_rejection: message.is_rejection,
+          reason: message.reason,
+        };
+        set({ ledContent: lc });
+        return;
+      }
+      set((state) => ({ events: [message, ...state.events].slice(0, 20) }));
     };
   },
 }));
