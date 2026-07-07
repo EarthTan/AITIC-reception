@@ -37,6 +37,9 @@ def test_e2e_passed_drives_led_and_tts(tmp_path):
         r = c.post("/api/import/commit", json={"preview_id": r.json()["preview_id"]})
         assert r.status_code == 200, r.text
         vid = r.json()["visit_ids"][0]
+        # §3.2 写卡是手动动作，先调用 /api/cards/write
+        r = c.post("/api/cards/write", json={"visit_ids": [vid]})
+        assert r.status_code == 200, r.text
         assert _wait(lambda: any(x["visit_id"] == vid for x in c.get("/api/cards/write-log").json()), 10.0), "no card write"
         uid = next(x["card_uid"] for x in c.get("/api/cards/write-log").json() if x["visit_id"] == vid)
         v = c.get(f"/api/visits/{vid}").json()

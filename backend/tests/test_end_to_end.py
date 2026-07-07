@@ -73,8 +73,8 @@ async def test_full_pipeline_runs_end_to_end_without_error(tmp_path):
     )
     assert welcome_generated_payload["visit_id"] == visit_id
 
-    # 写卡（mock）
-    await card_service.handle_welcome_generated(welcome_generated_payload)
+    # 写卡（mock，手动触发）
+    await card_service.write_card_for_visit(welcome_generated_payload)
     card_write_payload = await asyncio.wait_for(card_write_queue.get(), timeout=5)
     assert card_write_payload["status"] == "success"
 

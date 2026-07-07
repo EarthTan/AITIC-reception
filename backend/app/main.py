@@ -105,13 +105,9 @@ def build_app(settings: Settings | None = None) -> FastAPI:
                         ai_writeup_worker.handle_welcome_requested,
                     )
                 ),
-                asyncio.create_task(
-                    _consume(
-                        event_bus,
-                        "welcome.generated",
-                        card_service.handle_welcome_generated,
-                    )
-                ),
+                # 注意：welcome.generated 不再自动触发 CardService。
+                # 按 TARGET §2.2 + §3.2，写卡必须由值班人员手动触发。
+                # CardService.write_card_for_visit 由 POST /api/cards/write 调用。
                 asyncio.create_task(
                     _consume(
                         event_bus,

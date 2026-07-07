@@ -18,10 +18,14 @@ async def write_cards(
     services: dict = Depends(get_services),
     db: Session = Depends(get_db),
 ) -> list[CardWriteResult]:
+    """手动触发写卡（TARGET §3.2：值班人员点击"批量写卡"按钮触发）。
+
+    不再由 welcome.generated 自动驱动——值班人员必须确认后才写卡。
+    """
     card_service = services["card"]
     results: list[CardWriteResult] = []
     for visit_id in body.visit_ids:
-        await card_service.handle_welcome_generated({"visit_id": visit_id})
+        await card_service.write_card_for_visit({"visit_id": visit_id})
         write_log = (
             db.execute(
                 select(NFCWriteLog)

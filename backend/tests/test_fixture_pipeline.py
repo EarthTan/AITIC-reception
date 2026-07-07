@@ -67,9 +67,11 @@ async def test_fixture_covers_all_identity_types_and_rejects_bad_row():
     written_cards: dict[int, str] = {}
     for _ in visit_ids:
         payload = await asyncio.wait_for(welcome_generated_queue.get(), timeout=5)
-        await card_service.handle_welcome_generated(payload)
+        # 现在写卡是手动触发，模拟值班人员点"批量写卡"
+        await card_service.write_card_for_visit(payload)
         completed = await asyncio.wait_for(card_write_queue.get(), timeout=5)
         written_cards[completed["visit_id"]] = completed["card_uid"]
+
 
     # Correct card+name -> passes verification
     good_visit_id = visit_ids[0]

@@ -15,7 +15,11 @@ class CardService:
         self._event_bus = event_bus
         self._nfc_adapter = nfc_adapter
 
-    async def handle_welcome_generated(self, payload: dict) -> None:
+    async def write_card_for_visit(self, payload: dict) -> None:
+        """为单个访客写卡。由 POST /api/cards/write 手动触发。
+
+        按 TARGET §2.2 / §3.2：写卡是手动动作，不再由 welcome.generated 自动触发。
+        """
         visit_id = payload["visit_id"]
         with self._session_factory() as session:
             visit = session.get(Visit, visit_id)
