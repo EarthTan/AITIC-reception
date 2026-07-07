@@ -7,6 +7,7 @@ import { useRealtimeStore } from "../stores/realtimeStore";
 export function LiveBoardPage() {
   const events = useRealtimeStore((state) => state.events);
   const connected = useRealtimeStore((state) => state.connected);
+  const ledContent = useRealtimeStore((state) => state.ledContent);
   const [cardUid, setCardUid] = useState("SIM-001");
   const [visitId, setVisitId] = useState("");
   const [name, setName] = useState("");
@@ -25,7 +26,8 @@ export function LiveBoardPage() {
       }),
   });
 
-  const latest = events[0];
+  // 优先显示 led.content（包含姓名 + 欢迎语 + 是否拒绝 + 拒绝原因）
+  const display = ledContent ?? null;
 
   return (
     <div>
@@ -33,16 +35,21 @@ export function LiveBoardPage() {
       <p>WebSocket连接状态：{connected ? "已连接" : "未连接"}</p>
 
       <section>
-        {latest?.type === "card.verify.passed" && (
-          <div>
-            <h2>欢迎光临！</h2>
-            <p>visit_id: {String(latest.payload.visit_id)}</p>
+        {display && !display.is_rejection && (
+          <div style={{ background: "#e8f5e9", padding: 24, borderRadius: 8 }}>
+            <h2 style={{ color: "#2e7d32", margin: 0 }}>✓ 欢迎光临</h2>
+            <p style={{ fontSize: 28, margin: "12px 0" }}>
+              {String(display.name)}
+            </p>
+            <p style={{ fontSize: 18, color: "#555" }}>
+              {String(display.welcome_text)}
+            </p>
           </div>
         )}
-        {latest?.type === "card.verify.failed" && (
-          <div>
-            <h2 style={{ color: "red" }}>无权限入场</h2>
-            <p>原因：{String(latest.payload.fail_reason)}</p>
+        {display?.is_rejection && (
+          <div style={{ background: "#ffebee", padding: 24, borderRadius: 8 }}>
+            <h2 style={{ color: "#c62828" }}>无权限入场</h2>
+            {display.reason && <p>原因：{display.reason}</p>}
           </div>
         )}
       </section>
