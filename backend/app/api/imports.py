@@ -13,11 +13,20 @@ from app.schemas.visit import (
     ImportCommitResponse,
     ImportPreviewResponse,
     ImportPreviewRow,
+    mask_id_number,
 )
 
 router = APIRouter(prefix="/api/import", tags=["import"])
 
 PENDING_IMPORT_DIR = Path("data/pending_imports")
+
+
+def _scrub_pii(data: dict) -> dict:
+    """§六.2：preview 阶段身份证号必须脱敏，防止值班人员浏览器拿到明文。"""
+    raw = data.get("身份证号")
+    if isinstance(raw, str) and raw.strip():
+        data = {**data, "身份证号": mask_id_number(raw)}
+    return data
 
 
 @router.post("/preview", response_model=ImportPreviewResponse)
@@ -39,7 +48,7 @@ async def preview_import(
     rows = [
         ImportPreviewRow(
             row_number=row.row_number,
-            data=row.data,
+            data=_scrub_pii(row.data),
             errors=row.errors,
             is_valid=row.is_valid,
         )
