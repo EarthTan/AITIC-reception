@@ -36,10 +36,11 @@ class OnsiteWelcomeService:
             logger.warning("card.verify.passed 但找不到 visit %s", visit_id)
             return
 
-        # 三个动作可并行：LED 显示、TTS 朗读、work_log
+        # 四个动作可并行：LED 显示、TTS 朗读、led.content 推送、work_log
         await asyncio.gather(
             self._led.display(["all"], content),
             self._tts.enqueue_speech(content.welcome_text),
+            self._publish_led(content),
             self._publish_worklog(
                 "led",
                 "display",
@@ -58,9 +59,19 @@ class OnsiteWelcomeService:
         reason = payload.get("fail_reason", "")
         card_uid = payload.get("card_uid", "")
 
+        from app.schemas.led import LEDContent
+
         await asyncio.gather(
             self._led.show_rejected(["all"], reason=reason),
             self._tts.play_beep(duration_seconds=1.5),
+            self._publish_led(
+                LEDContent(
+                    name="",
+                    welcome_text="无权限入场",
+                    is_rejection=True,
+                    reason=reason,
+                )
+            ),
             self._publish_worklog(
                 "led",
                 "show_rejected",
@@ -99,3 +110,8 @@ class OnsiteWelcomeService:
                 "detail": detail,
             },
         )
+
+    async def _publish_led(self, content) -> None:
+        from dataclasses import asdict
+
+        await self._bus.publish("led.content", asdict(content))

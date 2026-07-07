@@ -10,7 +10,12 @@ from app.core.event_bus import EventBus
 
 router = APIRouter()
 
-REALTIME_TOPICS = ["card.verify.passed", "card.verify.failed", "adapter.heartbeat"]
+REALTIME_TOPICS = [
+    "card.verify.passed",
+    "card.verify.failed",
+    "adapter.heartbeat",
+    "led.content",
+]
 
 
 @router.websocket("/ws/realtime")
