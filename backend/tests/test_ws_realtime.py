@@ -30,5 +30,7 @@ def test_ws_realtime_forwards_card_verify_passed_event(tmp_path):
             message = websocket.receive_json()
 
             assert message["type"] == "card.verify.passed"
-            assert message["payload"] == {"visit_id": 1, "card_uid": "ABC"}
+            assert message["visit_id"] == 1
+            assert message["card_uid"] == "ABC"
             assert "timestamp" in message
+            assert "payload" not in message

@@ -30,11 +30,14 @@ async def realtime(websocket: WebSocket) -> None:
     async def _forward_topic(topic: str, topic_queue: asyncio.Queue) -> None:
         while True:
             payload = await topic_queue.get()
+            # Spread payload fields to the top level so the frontend's flattened
+            # RealtimeEvent union (e.g. adapter_name, name, welcome_text) lines
+            # up directly with what lands on `message` after JSON.parse.
             await websocket.send_json(
                 {
                     "type": topic,
                     "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "payload": payload,
+                    **payload,
                 }
             )
 
