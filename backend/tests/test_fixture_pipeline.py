@@ -95,4 +95,4 @@ async def test_fixture_covers_all_identity_types_and_rejects_bad_row():
 
     with session_factory() as session:
         assert session.get(Visit, good_visit_id).status == VisitStatus.VERIFIED
-        assert session.get(Visit, bad_visit_id).status == VisitStatus.CARD_WRITTEN
+        assert session.get(Visit, bad_visit_id).status == VisitStatus.REJECTED

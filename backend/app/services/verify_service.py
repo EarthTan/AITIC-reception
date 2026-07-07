@@ -39,6 +39,8 @@ class VerifyService:
             )
             if visit and fail_reason is None:
                 visit.status = VisitStatus.VERIFIED
+            elif visit and fail_reason is not None:
+                visit.status = VisitStatus.REJECTED
             session.commit()
 
         if fail_reason is None:
