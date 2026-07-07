@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "../api/queryKeys";
-import { fetchWorkLogs } from "../api/logs";
+import { fetchWorkLogs, workLogExportUrl } from "../api/logs";
 
 const MODULES = [
   "registration",
@@ -52,6 +52,20 @@ export function WorkLogPage() {
           </option>
         ))}
       </select>
+      <a
+        href={workLogExportUrl(moduleFilter, statusFilter)}
+        download
+        style={{
+          padding: "6px 12px",
+          background: "#1976d2",
+          color: "#fff",
+          borderRadius: 4,
+          textDecoration: "none",
+          marginLeft: 12,
+        }}
+      >
+        导出 Excel
+      </a>
 
       <table>
         <thead>

@@ -14,3 +14,11 @@ export async function fetchWorkLogs(params?: {
   const response = await apiClient.get<WorkLogOut[]>("/work-logs", { params });
   return response.data;
 }
+
+export function workLogExportUrl(module?: string, status?: string): string {
+  const params = new URLSearchParams();
+  if (module) params.set("module", module);
+  if (status) params.set("status", status);
+  const qs = params.toString();
+  return `/api/work-logs/export${qs ? `?${qs}` : ""}`;
+}
