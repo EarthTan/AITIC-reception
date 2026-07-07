@@ -24,8 +24,9 @@ export const router = createBrowserRouter([
       { path: "templates", element: <TemplatesPage /> },
       { path: "work-logs", element: <WorkLogPage /> },
       { path: "settings", element: <SettingsPage /> },
-      { path: "/display", element: <DisplayPage /> },
-      { path: "/mock-led", element: <MockLEDPane /> },
     ],
   },
+  // Full-screen pages that must NOT render the top nav or AdapterOfflineBanner.
+  { path: "/display", element: <DisplayPage /> },
+  { path: "/mock-led", element: <MockLEDPane /> },
 ]);
